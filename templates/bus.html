@@ -2,12 +2,22 @@
 <html>
 <head><title>Bus Times</title><meta charset="utf-8"></head>
 <body>
-<!--
-http://www.theride.org/DesktopModules/AATA.Endpoint/proxy.ashx?method=predictionsforstop&stpid=472
-http://www.theride.org/DesktopModules/AATA.Endpoint/proxy.ashx?method=predictionsforstop&stpid=1804
--->
-<script src="jquery-3.3.1.js"></script>
-<div id="content">{{tables}}</div>
-<script src="times.js"></script>
+{% for stop in stops %}
+<table><tr>
+<th>#</th>
+<th>Route</th>
+<th>Predicted</th>
+<th>Scheduled</th>
+</tr>
+    {% for arrival in stop %}
+    <tr>
+    <td>{{ arrival.number }}</td>
+    <td>{{ arrival.route }} </td>
+    <td>{{ arrival.predicted }}</td>
+    <td>{{ arrival.scheduled }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endfor %}
 </body>
 </html>
