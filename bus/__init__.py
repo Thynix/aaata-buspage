@@ -30,6 +30,9 @@ def showSchedules():
                              "scheduled": arrival["schdtm"],
             })
 
-        stops.append(arrivals)
+        stops.append({
+                      "name": arrival["stpnm"],
+                      "arrivals": arrivals,
+        })
 
     return render_template("bus.html", stops=stops)

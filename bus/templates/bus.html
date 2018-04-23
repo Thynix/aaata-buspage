@@ -3,13 +3,15 @@
 <head><title>Bus Times</title><meta charset="utf-8"></head>
 <body>
 {% for stop in stops %}
-<table><tr>
+<table>
+<caption>{{ stop.name }}</caption>
+<tr>
 <th>#</th>
 <th>Route</th>
 <th>Predicted</th>
 <th>Scheduled</th>
 </tr>
-    {% for arrival in stop %}
+    {% for arrival in stop.arrivals %}
     <tr>
     <td>{{ arrival.number }}</td>
     <td>{{ arrival.route }} </td>
