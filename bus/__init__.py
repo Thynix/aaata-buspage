@@ -24,8 +24,7 @@ def showSchedules():
         arrivals = []
         for arrival in schedule["bustime-response"]["prd"]:
             arrivals.append({
-                             "number": arrival["rt"],
-                             "route": arrival["typ"],
+                             "route": arrival["rt"] + arrival["des"],
                              "predicted": arrival["prdtm"],
                              "scheduled": arrival["schdtm"],
             })
