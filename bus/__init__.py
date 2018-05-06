@@ -21,13 +21,17 @@ def showSchedules():
             return "Request for {} failed with code {}: {}".format(url, r.status_code, r.text)
 
         schedule = r.json()
+        predictions = schedule["bustime-response"]["prd"]
         arrivals = []
-        for arrival in schedule["bustime-response"]["prd"]:
-            arrivals.append({
-                             "route": arrival["rt"] + arrival["des"],
-                             "predicted": arrival["prdtm"],
-                             "scheduled": arrival["schdtm"],
-            })
+        # If there is a single prediction it is given directly, not in a list with one element.
+        if isinstance(predictions, dict):
+            arrival = predictions
+            arrivals.append(parse_arrival(arrival))
+        else:
+            assert isinstance(predictions, list)
+            assert len(predictions) > 0
+            for arrival in predictions:
+                arrivals.append(parse_arrival(arrival))
 
         stops.append({
                       "name": arrival["stpnm"],
@@ -35,3 +39,11 @@ def showSchedules():
         })
 
     return render_template("bus.html", stops=stops)
+
+
+def parse_arrival(arrival):
+    return {
+        "route": arrival["rt"] + arrival["des"],
+        "predicted": arrival["prdtm"],
+        "scheduled": arrival["schdtm"],
+    }
