@@ -4,13 +4,14 @@ import requests
 app = Flask(__name__)
 
 stop_ids = [
-472,
-1804,
+    472,
+    1804,
 ]
 stops_endpoint = "http://www.theride.org/DesktopModules/AATA.Endpoint/proxy.ashx?method=predictionsforstop&stpid={}"
 
+
 @app.route("/")
-def showSchedules():
+def show_schedules():
     stops = []
     for stop_id in stop_ids:
         url = stops_endpoint.format(stop_id)
