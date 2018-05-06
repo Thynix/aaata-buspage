@@ -1,4 +1,5 @@
 from flask import Flask, render_template, redirect, request
+import datetime
 import requests
 
 app = Flask(__name__)
@@ -58,6 +59,10 @@ def show_schedules():
 def parse_arrival(arrival):
     return {
         "route": arrival["rt"] + arrival["des"],
-        "predicted": arrival["prdtm"],
-        "scheduled": arrival["schdtm"],
+        "predicted": parse_datetime(arrival["prdtm"]),
+        "scheduled": parse_datetime(arrival["schdtm"]),
     }
+
+
+def parse_datetime(timestamp):
+    return datetime.datetime.strptime(timestamp, "%Y%m%d %H:%M").strftime("%Y-%m-%d %H:%M")
