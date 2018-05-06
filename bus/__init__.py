@@ -1,9 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, request
 import requests
 
 app = Flask(__name__)
 
-stop_ids = [
+default_stop_ids = [
     472,
     1804,
 ]
@@ -11,9 +11,17 @@ stops_endpoint = "http://www.theride.org/DesktopModules/AATA.Endpoint/proxy.ashx
 
 
 @app.route("/")
+def home():
+    return redirect("/show?stops={}".format(",".join(map(str, default_stop_ids))))
+
+
+@app.route("/show")
 def show_schedules():
+    if "stops" not in request.args:
+        return redirect("/")
+
     stops = []
-    for stop_id in stop_ids:
+    for stop_id in map(int, request.args["stops"].split(",")):
         url = stops_endpoint.format(stop_id)
         r = requests.get(url)
 
