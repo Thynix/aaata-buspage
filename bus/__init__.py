@@ -25,16 +25,17 @@ def show_schedules():
         arrivals = []
         # If there is a single prediction it is given directly, not in a list with one element.
         if isinstance(predictions, dict):
-            arrival = predictions
-            arrivals.append(parse_arrival(arrival))
+            stop_name = predictions["stpnm"]
+            arrivals.append(parse_arrival(predictions))
         else:
             assert isinstance(predictions, list)
             assert len(predictions) > 0
+            stop_name = predictions[0]["stpnm"]
             for arrival in predictions:
                 arrivals.append(parse_arrival(arrival))
 
         stops.append({
-                      "name": arrival["stpnm"],
+                      "name": stop_name,
                       "arrivals": arrivals,
         })
 
