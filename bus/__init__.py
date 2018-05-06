@@ -27,13 +27,21 @@ def show_schedules():
         r = requests.get(url)
 
         if r.status_code != 200:
-            return "Request for {} failed with code {}: {}".format(url, r.status_code, r.text)
+            stops.append({
+                "id": stop_id,
+                "msg": "Request failed with code {}: {}".format(r.status_code, r.text),
+            })
+            continue
 
         arrivals = []
         schedule = r.json()["bustime-response"]
 
         if "error" in schedule:
-            return "Got error for stop {}: {}".format(stop_id, schedule["error"]["msg"])
+            stops.append({
+                "id": stop_id,
+                "error": schedule["error"]["msg"],
+            })
+            continue
 
         predictions = schedule["prd"]
 

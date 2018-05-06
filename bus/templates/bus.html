@@ -8,6 +8,10 @@
 </head>
 <body>
 {% for stop in stops %}
+{% if stop.error is defined %}
+<h3>Stop #{{ stop.id }}</h3>
+<p>{{ stop.error }}</p>
+{% else %}
 <h3>{{ stop.name }}</h3>
 <table class="table">
 <tr>
@@ -23,6 +27,7 @@
     </tr>
     {% endfor %}
 </table>
+{% endif %}
 {% endfor %}
 <p>Transit scheduling, geographic, and real-time data provided by permission of AAATA/TheRide.<p>
 </body>
