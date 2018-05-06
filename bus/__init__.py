@@ -20,9 +20,10 @@ def show_schedules():
         if r.status_code != 200:
             return "Request for {} failed with code {}: {}".format(url, r.status_code, r.text)
 
+        arrivals = []
         schedule = r.json()
         predictions = schedule["bustime-response"]["prd"]
-        arrivals = []
+
         # If there is a single prediction it is given directly, not in a list with one element.
         if isinstance(predictions, dict):
             stop_name = predictions["stpnm"]
