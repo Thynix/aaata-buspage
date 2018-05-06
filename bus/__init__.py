@@ -29,8 +29,12 @@ def show_schedules():
             return "Request for {} failed with code {}: {}".format(url, r.status_code, r.text)
 
         arrivals = []
-        schedule = r.json()
-        predictions = schedule["bustime-response"]["prd"]
+        schedule = r.json()["bustime-response"]
+
+        if "error" in schedule:
+            return "Got error for stop {}: {}".format(stop_id, schedule["error"]["msg"])
+
+        predictions = schedule["prd"]
 
         # If there is a single prediction it is given directly, not in a list with one element.
         if isinstance(predictions, dict):
