@@ -1,14 +1,42 @@
 from flask import Flask, render_template, redirect, request, url_for
+import collections
 import datetime
 import requests
+import transitfeed
+
 
 app = Flask(__name__)
+app.config.from_object('config')
 
 default_stop_ids = [
     472,
     1804,
 ]
-stops_endpoint = "http://www.theride.org/DesktopModules/AATA.Endpoint/proxy.ashx?method=predictionsforstop&stpid={}"
+stops_endpoint = "http://rt.theride.org/bustime/api/v3/getpredictions?key={}&format=json&stpid={{}}".format(
+    app.config["API_KEY"]
+)
+
+# Lists of stop interpolations keyed by stop_id, keyed by trip_id.
+transit_times = dict()
+
+
+@app.before_first_request
+def load():
+    # This takes many seconds to load, so it's not appropriate to do on each request.
+    # TODO: Could cache result with hash of input file if there's a need to speed up loading.
+    app.logger.info("loading transit feed")
+    feed = transitfeed.Loader("google_transit.zip")
+    transit_schedule = feed.Load()
+    app.logger.info("loaded transit feed; processing")
+
+    for trip in transit_schedule.GetTripList():
+        trip_times = transit_times[trip.trip_id] = collections.defaultdict(list)
+
+        for interpolated_stop in trip.GetTimeInterpolatedStops():
+            stop_seconds, stop, is_timepoint = interpolated_stop
+            trip_times[stop.stop_id].append(interpolated_stop)
+
+    app.logger.info("processed transit feed")
 
 
 @app.route("/")
@@ -39,7 +67,7 @@ def show_schedules():
         if "error" in schedule:
             stops.append({
                 "id": stop_id,
-                "error": schedule["error"]["msg"],
+                "error": schedule["error"][0]["msg"],
             })
             continue
 
@@ -65,10 +93,22 @@ def show_schedules():
 
 
 def parse_arrival(arrival):
+    # It does not appear to be prohibited for a given trip to have multiple arrivals to the same stop, as a loop could,
+    # so it's ambiguous which scheduled time the prediction corresponds to. Display all arrivals by the trip referenced
+    # by the prediction to the stop. In practice it seems likely that a loop would be broken into multiple route
+    # directions.
+    scheduled_times = []
+    for stop_seconds, stop, is_timepoint in transit_times[arrival["tatripid"]][arrival["stpid"]]:
+        # It's ambiguous which day the scheduled arrival time is relative to, as it's not necessarily the same as that
+        # of the predicted arrival, so might as well use today.
+        today = datetime.date.today()
+        scheduled_times.append(datetime.datetime(today.year, today.month, today.day) +
+                               datetime.timedelta(seconds=stop_seconds))
+
     return {
         "route": arrival["rt"] + arrival["des"],
         "predicted": parse_datetime(arrival["prdtm"]),
-        "scheduled": parse_datetime(arrival["schdtm"]),
+        "scheduled": ",".join(map(str, scheduled_times)),
     }
 
 
