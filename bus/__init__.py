@@ -62,7 +62,10 @@ def show_schedules():
             continue
 
         arrivals = []
-        schedule = r.json()["bustime-response"]
+        try:
+            schedule = r.json()["bustime-response"]
+        except ValueError as e:
+            raise ValueError("failed to parse response '{}': {}".format(r.text, e))
 
         if "error" in schedule:
             stops.append({
