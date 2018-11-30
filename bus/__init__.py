@@ -73,6 +73,15 @@ def load():
     app.logger.info("updated cache")
 
 
+@app.route("/reload", methods=("POST",))
+def reload_transit():
+    if request.form['password'] == app.config["RELOAD_PASSWORD"]:
+        load()
+        return "success"
+    else:
+        return "password incorrect"
+
+
 @app.route("/")
 def home():
     return redirect(url_for("show_schedules") + "?stops={}".format(",".join(map(str, default_stop_ids))))

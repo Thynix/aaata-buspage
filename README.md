@@ -24,15 +24,18 @@ in a virtualenv with (after activating the virtualenv)`pip install -r requiremen
 > property. While the schedule data is provided free for your use, our logo and other registered service marks and
 > trademarks remain the property of AAATA/TheRide.
 
-Setting up a periodic job to check for updates is therefore a good idea. 
+Setting up a periodic job to check for updates is therefore a good idea. The `bus_update_service` directory contains a
+script and associated systemd configuration to check for modifications to the file and reload the file when it changes.
+To set up the timer, copy FIXME
 
-To deploy this, copy `bus.wsgi` to somewhere in your webroot, then set up the Flask WSGI app. `bus.wsgi` assumes this
-project is cloned to `bus` under a `buspage` user. Copy `sample_config.py` to `config.py`, and set the API key.
+To deploy this, copy `bus.wsgi` to somewhere in your webroot, then set up the Flask WSGI app. The example configuration
+assumes this project is cloned to a `aaata-buspage` directory under a `buspage` user. Copy `sample_config.py` to
+`config.py`, and set its values.
 
 For Apache 2 on Debian, `mod_wgsi` for Python 2 is packaged as `libapache2-mod-wsgi`, and the necessary additions
 within the relevant `VirtualHost` look something like:
 
-        WSGIDaemonProcess buspage user=buspage python-home=/home/buspage/venv home=/home/buspage/bus
+        WSGIDaemonProcess buspage user=buspage python-home=/home/buspage/venv home=/home/buspage/aaata-buspage
         WSGIScriptAlias /bus /var/www/bus/bus.wsgi process-group=buspage application-group=buspage
 
 ## Testing

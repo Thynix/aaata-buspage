@@ -1,0 +1,54 @@
+#!/usr/env/bin python2
+import errno
+import fcntl
+import os
+import subprocess
+import requests
+
+# Prevent concurrent execution as this script's behavior depends on the presence
+# of and removes backup files created by wget. The lock is dropped when the
+# program exits because all lock file file descriptors are closed.
+lock_file = open("google_transit_update.lock", "w")
+try:
+    fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+except IOError as e:
+    if e.errno == errno.EWOULDBLOCK:
+        print("Lock file already locked. Exiting.")
+        exit()
+
+    raise
+
+# Read the same config file as the web app to get the update password. By
+# default, This requires the working directory to be that of the root of the
+# repository, as done in bus-transit-refresh.service.
+config = dict()
+execfile("config.py", config)
+reload_password = config["RELOAD_PASSWORD"]
+reload_uri = config["RELOAD_URI"]
+
+# To determine if the file was updated, direct wget to create a backup. Ensure
+# the backup does not exist first.
+try:
+    os.remove("google_transit.zip.1")
+except OSError as e:
+    # FileNotFoundError is expected as the file probably doesn't exist; anything
+    # else is an error.
+    if e.errno != errno.ENOENT:
+        raise
+
+subprocess.check_call(["wget", "--timestamping", "--backups=1",
+                       "https://www.theride.org/google/google_transit.zip"])
+
+# If the backup cannot be removed, the file wasn't changed, but if it does
+# exist,
+try:
+    os.remove("google_transit.zip.1")
+
+    print("File changed - triggering update.")
+    # FIXME implement... error handling? test.
+    requests.post(reload_uri, {"password": reload_password})
+except OSError as e:
+    if e.errno != errno.ENOENT:
+        raise
+
+    print("File unchanged.")

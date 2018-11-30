@@ -2,3 +2,4 @@
 *.pyc
 /google_transit.zip
 /google_transit.pickle
+/google_transit_update.lock
