@@ -3,6 +3,8 @@
 This exists to reduce the number of steps to find when the bus will arrive. Instead of having to select the stop or
 route again to get updated times, one need only refresh the page.
 
+*NOTE*: This doesn't yet provide an automated method for keeping the transit data up-to-date, which is required by AAATA's ToS.
+
 ## Screenshot
 
 ![Screenshot](/screenshot.png)
