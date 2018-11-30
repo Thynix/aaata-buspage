@@ -3,11 +3,20 @@ import collections
 import datetime
 import requests
 import transitfeed
+import hashlib
+import pickle
+import errno
 
+TRANSIT_FILENAME = "google_transit.zip"
+CACHE_FILENAME = "google_transit.pickle"
+
+# Increment this when the things that are cached changes.
+CACHE_VERSION = 1
 
 app = Flask(__name__)
 app.config.from_object('config')
 
+# TODO: Move to config
 default_stop_ids = [
     472,
     1804,
@@ -22,10 +31,28 @@ transit_times = dict()
 
 @app.before_first_request
 def load():
-    # This takes many seconds to load, so it's not appropriate to do on each request.
-    # TODO: Could cache result with hash of input file if there's a need to speed up loading.
+    # This takes many seconds to load, so it's not appropriate to do on each
+    # request. Check for an up-to-date cache file before loading.
+    app.logger.info("loading cache")
+    transit_hash = hashlib.sha512(open(TRANSIT_FILENAME).read()).hexdigest()
+    try:
+        cache = pickle.load(open(CACHE_FILENAME, "rb"))
+        if cache["hash"] == transit_hash and cache["version"] == CACHE_VERSION:
+            transit_times.clear()
+            transit_times.update(cache["times"])
+            app.logger.info("loaded cache")
+            return
+
+        app.logger.info("cache invalid")
+    except IOError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
+        app.logger.info("cache not found")
+
+    # No up-to-date cache was available.
     app.logger.info("loading transit feed")
-    feed = transitfeed.Loader("google_transit.zip")
+    feed = transitfeed.Loader(TRANSIT_FILENAME)
     transit_schedule = feed.Load()
     app.logger.info("loaded transit feed; processing")
 
@@ -34,9 +61,16 @@ def load():
 
         for interpolated_stop in trip.GetTimeInterpolatedStops():
             stop_seconds, stop, is_timepoint = interpolated_stop
-            trip_times[stop.stop_id].append(interpolated_stop)
+            trip_times[stop.stop_id].append(StopTime(stop_seconds, is_timepoint))
 
     app.logger.info("processed transit feed")
+    pickle.dump({
+        "hash": transit_hash,
+        "times": transit_times,
+        "version": CACHE_VERSION,
+    },
+                open(CACHE_FILENAME, "wb"), pickle.HIGHEST_PROTOCOL)
+    app.logger.info("updated cache")
 
 
 @app.route("/")
@@ -101,12 +135,12 @@ def parse_arrival(arrival):
     # by the prediction to the stop. In practice it seems likely that a loop would be broken into multiple route
     # directions.
     scheduled_times = []
-    for stop_seconds, stop, is_timepoint in transit_times[arrival["tatripid"]][arrival["stpid"]]:
+    for stop in transit_times[arrival["tatripid"]][arrival["stpid"]]:
         # It's ambiguous which day the scheduled arrival time is relative to, as it's not necessarily the same as that
         # of the predicted arrival, so might as well use today.
         today = datetime.date.today()
         scheduled_times.append(datetime.datetime(today.year, today.month, today.day) +
-                               datetime.timedelta(seconds=stop_seconds))
+                               datetime.timedelta(seconds=stop.seconds))
 
     return {
         "route": arrival["rt"] + arrival["des"],
@@ -117,3 +151,9 @@ def parse_arrival(arrival):
 
 def parse_datetime(timestamp):
     return datetime.datetime.strptime(timestamp, "%Y%m%d %H:%M").strftime("%Y-%m-%d %H:%M")
+
+
+class StopTime(object):
+    def __init__(self, stop_seconds, is_timepoint):
+        self.seconds = stop_seconds
+        self.is_timepoint = is_timepoint

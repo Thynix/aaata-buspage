@@ -1,3 +1,4 @@
 /config.py
 *.pyc
 /google_transit.zip
+/google_transit.pickle
