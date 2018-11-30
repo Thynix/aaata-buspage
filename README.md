@@ -13,8 +13,8 @@ Requires [`Flask`](https://pypi.org/project/Flask/1.0.2/), [`requests`](https://
 [`transitfeed`](https://pypi.org/project/transitfeed/). Install these (ideally in a virtualenv or at least `--user` to
 avoid elevating) with `pip install -r requirements.txt`.
 
-`google_transit.zip` must exist - fetch it from [http://www.theride.org/google/google_transit.zip](here). The
-[associated ToS]() notes:
+`google_transit.zip` must exist - fetch it from [https://www.theride.org/google/google_transit.zip](here). An
+[associated page](https://www.theride.org/AboutUs/For-Developers/Developer-Files) notes in part:
 
 > You have an obligation to keep schedule information up to date. Our customers depend on accurate information. Outdated
 > schedules can mean missed buses or poorly timed connections. We require developers to update their data within three
