@@ -27,17 +27,10 @@ Setting up a periodic job to check for updates is therefore a good idea.
 To deploy this, copy `bus.wsgi` to somewhere in your webroot, then set up the Flask WSGI app. `bus.wsgi` assumes this
 project is cloned to `bus` under a `buspage` user. Copy `sample_config.py` to `config.py`, and set the API key.
 
-On Apache 2, the necessary `VirtualHost` additions look like:
+On Apache 2, the necessary additions within the relevant `VirtualHost` look something like:
 
-        WSGIDaemonProcess buspage user=buspage
-        WSGIScriptReloading On
-        WSGIScriptAlias /bus /var/www/bus/bus.wsgi process-group=buspage application-group=%{GLOBAL}
-
-        <Directory /var/www/bus>
-                WSGIProcessGroup buspage
-                WSGIApplicationGroup %{GLOBAL}
-                Require all granted
-        </Directory>
+        WSGIDaemonProcess buspage user=buspage python-home=/home/buspage/venv home=/home/buspage/bus
+        WSGIScriptAlias /bus /var/www/bus/bus.wsgi process-group=buspage application-group=buspage
 
 ## Testing
 
