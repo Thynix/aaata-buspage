@@ -16,11 +16,6 @@ CACHE_VERSION = 1
 app = Flask(__name__)
 app.config.from_object('config')
 
-# TODO: Move to config
-default_stop_ids = [
-    472,
-    1804,
-]
 stops_endpoint = "http://rt.theride.org/bustime/api/v3/getpredictions?key={}&format=json&stpid={{}}".format(
     app.config["API_KEY"]
 )
@@ -75,7 +70,7 @@ def load():
 
 @app.route("/")
 def home():
-    return redirect(url_for("show_schedules") + "?stops={}".format(",".join(map(str, default_stop_ids))))
+    return redirect(url_for("show_schedules") + "?stops={}".format(",".join(map(str, app.config["DEFAULT_STOP_IDS"]))))
 
 
 @app.route("/show")
