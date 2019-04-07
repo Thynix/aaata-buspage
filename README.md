@@ -11,9 +11,7 @@ route again to get updated times, one need only refresh the page.
 
 ## Setup
 
-Requires [`Flask`](https://pypi.org/project/Flask/1.0.2/), [`requests`](https://pypi.org/project/requests/),
-[`transitfeed`](https://pypi.org/project/transitfeed/), and Python 2 (because `transitfeed` does). Install these
-in a virtualenv with (after activating the virtualenv)`pip install -r requirements.txt`.
+Requires Python 2, and uses [`pipenv`](https://pipenv.readthedocs.io/en/latest/) for dependencies. Run `pipenv install` to install them.
 
 `google_transit.zip` must exist - fetch it from [https://www.theride.org/google/google_transit.zip](here). An
 [associated page](https://www.theride.org/AboutUs/For-Developers/Developer-Files) notes in part:
